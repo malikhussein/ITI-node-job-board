@@ -1,0 +1,32 @@
+{
+  "name": "iti-node-job-board",
+  "version": "1.0.0",
+  "description": "Job Board API done by node js",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Medjai229/ITI-node-job-board.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Medjai229/ITI-node-job-board/issues"
+  },
+  "homepage": "https://github.com/Medjai229/ITI-node-job-board#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.10.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
