@@ -71,7 +71,7 @@ export default class Application {
     }
   }
 
-  static async getAllApplications(req, res) {
+  static async getUserApplications(req, res) {
     try {
       // TODO: replace userId with req.userId
       const userId = '67be425b4ec595444e702a2b';
