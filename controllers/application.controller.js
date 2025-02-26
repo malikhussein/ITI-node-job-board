@@ -17,12 +17,13 @@ export default class Application {
         return res.status(404).json({ message: 'job does not exist' });
       }
 
-      // * Check if the user posting the app exists and is a job-seeker
-      const user = await userModel.findById(userId);
-
+      // * Check if the token is valid
       if (!userId) {
         return res.status(401).json({ message: 'token is invalid' });
       }
+
+      // * Check if the user posting the app exists and is a job-seeker
+      const user = await userModel.findById(userId);
 
       if (!user) {
         return res.status(404).json({ message: 'user does not exist' });
@@ -61,7 +62,8 @@ export default class Application {
         resume: resume.id,
       });
 
-      return res.status(200).json(newApplication);
+      // * Created the application successfully
+      return res.status(201).json(newApplication);
     } catch (error) {
       return res
         .status(500)
