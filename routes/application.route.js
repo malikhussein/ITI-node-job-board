@@ -5,5 +5,6 @@ const applicationRouter = Router();
 
 applicationRouter.post('/:jobId', Application.applyJob);
 applicationRouter.get('/', Application.getUserApplications);
+applicationRouter.get('/:jobId', Application.getJobApplications);
 
 export default applicationRouter;
