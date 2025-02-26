@@ -70,4 +70,42 @@ export default class Application {
         .json({ message: error.message || 'internal server error' });
     }
   }
+
+  static async getAllApplications(req, res) {
+    try {
+      // TODO: replace userId with req.userId
+      const userId = '67be425b4ec595444e702a2b';
+
+      // * Check if the token is valid
+      if (!userId) {
+        return res.status(401).json({ message: 'token is invalid' });
+      }
+
+      // * Check if the user posting the app exists and is a job-seeker
+      const user = await userModel.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: 'user does not exist' });
+      }
+
+      if (user.role !== 'job-seeker') {
+        return res.status(403).json({ message: 'user is not a job-seeker' });
+      }
+
+      // * Get all applications for the user
+      const applications = await applicationModel.find({ applicant: userId });
+
+      // * Check that there is any applications
+      if (!applications || !applications.length) {
+        return res.status(200).json({ message: 'no applications were found' });
+      }
+
+      // * Return the user applications
+      return res.status(200).json(applications);
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: error.message || 'internal server error' });
+    }
+  }
 }
