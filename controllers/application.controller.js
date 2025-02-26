@@ -221,4 +221,56 @@ export default class Application {
         .json({ message: error.message || 'internal server error' });
     }
   }
+
+  static async deleteApplication(req, res) {
+    try {
+      // TODO: replace userId with req.userId
+      const userId = '67be425b4ec595444e702a2b';
+
+      // * Check if the application exists
+      const { id } = req.params;
+      const application = await applicationModel.findById(id);
+
+      if (!application) {
+        return res.status(404).json({ message: 'application does not exist' });
+      }
+
+      // * Check if the token is valid
+      if (!userId) {
+        return res.status(401).json({ message: 'token is invalid' });
+      }
+
+      // * Check if the user exists
+      const user = await userModel.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: 'user does not exist' });
+      }
+
+      // * Check if the user is a job-seeker
+      if (user.role !== 'job-seeker') {
+        return res.status(403).json({ message: 'user is not a job-seeker' });
+      }
+
+      // * Check if the user is the owner of the application
+      if (application.applicant !== userId) {
+        return res.status(403).json({ message: 'user is not the applicant' });
+      }
+
+      // * Do not let the user delete if the application is accepted or rejected
+      const finalStatus = ['accepted', 'rejected'];
+      if (finalStatus.includes(application.status)) {
+        return res.status(400).json({
+          message: 'application can not be deleted in the final status',
+        });
+      }
+
+      await applicationModel.findByIdAndDelete(id);
+      return res.status(200).json({ message: 'application deleted' });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: error.message || 'internal server error' });
+    }
+  }
 }

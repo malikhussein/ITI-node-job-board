@@ -8,5 +8,6 @@ applicationRouter.get('/', Application.getUserApplications);
 applicationRouter.get('/:jobId', Application.getJobApplications);
 // ? /:id/status or /status/:id
 applicationRouter.put('/:id/status', Application.updateStatus);
+applicationRouter.delete('/:id', Application.deleteApplication);
 
 export default applicationRouter;
