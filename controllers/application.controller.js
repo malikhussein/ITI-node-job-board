@@ -108,4 +108,49 @@ export default class Application {
         .json({ message: error.message || 'internal server error' });
     }
   }
+
+  static async getJobApplications(req, res) {
+    try {
+      // TODO: replace userId with req.userId
+      const userId = '67be42794ec595444e702a2c';
+
+      // * Check if the job exists
+      const { jobId } = req.params;
+      const job = await jobModel.findById(jobId);
+
+      if (!job) {
+        return res.status(404).json({ message: 'job does not exist' });
+      }
+
+      // * Check if the token is valid
+      if (!userId) {
+        return res.status(401).json({ message: 'token is invalid' });
+      }
+
+      // * Check if the user exists
+      const user = await userModel.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: 'user does not exist' });
+      }
+
+      // * Check if the user is a employer who posted the job or an admin
+      // TODO check by whatever in the job model
+      const isEmployer =
+        user.role === 'employer' && user.email === job.posted_by;
+      const isAdmin = user.role === 'admin';
+
+      if (!isEmployer && !isAdmin) {
+        return res.status(403).json({ message: 'user does not have access' });
+      }
+
+      const applications = await applicationModel.find({ job: jobId });
+
+      return res.status(200).json(applications);
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: error.message || 'internal server error' });
+    }
+  }
 }
