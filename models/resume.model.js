@@ -1,15 +1,15 @@
-import { model, Schema } from 'mongoose';
+import { Schema, model } from "mongoose";
 
-const resumeSchema = new Schema(
-  {
-    // User Rel
-    fileUrl: {
-      type: String,
-    },
+const cvSchema = new Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
   },
-  { timestamps: true }
-);
+  cvUrl: {
+    type: String,
+    required: true,
+  },
+});
 
-const resumeModel = model('Resume', resumeSchema);
-
-export default resumeModel;
+export default model("CV", cvSchema);
