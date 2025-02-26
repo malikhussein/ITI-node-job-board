@@ -153,4 +153,72 @@ export default class Application {
         .json({ message: error.message || 'internal server error' });
     }
   }
+
+  // TODO: Test all errors
+  static async updateStatus(req, res) {
+    try {
+      // TODO: replace userId with req.userId
+      const userId = '67be42794ec595444e702a2c';
+
+      // * Get the values from the body
+      const { status } = req.body;
+
+      // * Check if the application exists
+      const { id } = req.params;
+      const application = await applicationModel.findById(id);
+
+      if (!application) {
+        return res.status(404).json({ message: 'application does not exist' });
+      }
+
+      // * Check if the token is valid
+      if (!userId) {
+        return res.status(401).json({ message: 'token is invalid' });
+      }
+
+      // * Check if the user exists
+      const user = await userModel.findById(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: 'user does not exist' });
+      }
+
+      // * Check if the user is a employer who posted the job or an admin
+      const job = await jobModel.findById(application.job);
+
+      const isEmployer =
+        user.role === 'employer' && user.email === job.posted_by;
+      const isAdmin = user.role === 'admin';
+
+      if (!isEmployer && !isAdmin) {
+        return res.status(403).json({ message: 'user does not have access' });
+      }
+
+      // * Check if the status provided is a vaild choice in the enum
+      const enumStatus = ['pending', 'reviewed', 'accepted', 'rejected'];
+
+      if (!status) {
+        return res.status(400).json({ message: 'status is required' });
+      }
+
+      if (!enumStatus.includes(status)) {
+        return res.status(400).json({ message: 'status provided is invalid' });
+      }
+
+      if (status === application.status) {
+        return res
+          .status(400)
+          .json({ message: `status is already set to ${status}` });
+      }
+
+      application.status = status;
+      await application.save();
+
+      return res.status(200).json(application);
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: error.message || 'internal server error' });
+    }
+  }
 }
