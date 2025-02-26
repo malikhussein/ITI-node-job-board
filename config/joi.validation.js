@@ -9,11 +9,11 @@ const signUpJoiSchema = joi.object({
     .required()
     .pattern(/^[a-zA-Z0-9_ ]+$/)
     .messages({
-      'string.min': 'Username must be at least 3 characters long',
-      'string.max': 'Username cannot exceed 30 characters',
+      'string.min': 'userName must be at least 3 characters long',
+      'string.max': 'userName cannot exceed 30 characters',
       'string.pattern.base':
-        'Username can only contain letters, numbers, and underscores',
-      'any.required': 'Username is required',
+        'userName can only contain letters, numbers, and underscores',
+      'any.required': 'userName is required',
     }),
   email: joi
     .string()
@@ -40,7 +40,7 @@ const signUpJoiSchema = joi.object({
   confirmedPassword: joi
     .string()
     .valid(joi.ref('password'))
-    .required()
+    .required() 
     .messages({
       'any.required': 'Confirm Password is required',
       'any.only': 'Passwords do not match',
