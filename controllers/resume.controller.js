@@ -20,11 +20,10 @@ const storage = new CloudinaryStorage({
   },
 });
 
-// make sure the key in Form-data  is 'cv' 
+// make sure the key in Form-data  is 'cv'
 export const upload = multer({ storage }).single("cv");
 export const uploadresume = async (req, res) => {
   try {
-    
     let userid = req.user.id;
     if (!userid) {
       return res.status(404).json({ status: "fail", message: "invalid id" });
@@ -77,6 +76,11 @@ export const getoneresume = async (req, res) => {
     if (!theCv) {
       res.status(404).json({ status: "fail", message: "CV Not Found" });
     }
+    if (theUser._id != theCv.userId) {
+      res
+        .status(404)
+        .json({ status: "fail", message: "you not have permation" });
+    }
 
     res.status(200).json({ status: "success", data: theCv });
   } catch (error) {
@@ -104,6 +108,12 @@ export const removeresume = async (req, res) => {
     }
 
     let theCv = await CV.findByIdAndDelete(cvId);
+
+    if (theUser._id != theCv.userId) {
+      res
+        .status(404)
+        .json({ status: "fail", message: "you not have permation" });
+    }
 
     res.status(200).json({ status: "success", message: "deleted" });
   } catch (error) {
