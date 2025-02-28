@@ -5,27 +5,35 @@ export const register = async (req, res) => {
   // Todo chek the role is employer
 
   const {role}= req.user
-  if (role=="employer") {
+  
+  if (role!=="employer") {
+
+    return res.json({message:"you are not allowed to create company"})
+
+  }
 
   try {
+
     const { name, industry, website } = req.body;
 
     const company = await companyModel.create({ name, industry, website });
 
     res.status(201).json({ message: "company is created", company });
+
+    
+  } catch (error) {
+
+    res.status(500).json({ error: error.message });
+
+    
+  }
       
-    }
-    catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-  else{
-   return  res.json({message:"you are not allowed "})
-  }
+  
 };
 
+  //  chek that he is login only using middleware
+
 export const displayCompanies = async (req, res) => {
-  // Todo chek that he is login only
 
   try {
     const foundedCompany = await companyModel.find({});
@@ -37,7 +45,7 @@ export const displayCompanies = async (req, res) => {
 };
 
 
- // Todo chek user  can display
+ //  chek user  can display using middleware
 
 export const displayCompanyByid = async (req, res) => {
 
@@ -106,7 +114,6 @@ export const deleteCompany = async (req, res) => {
 
 try {
   
-  const { name, industry, website } = req.body;
 
   const{id:companyId} =req.params
 

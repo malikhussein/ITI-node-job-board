@@ -5,7 +5,7 @@ import authMiddleware from "../middleware/auth.middleware.js";
 const companyRoutes=Router()
 
 companyRoutes.post("/register",authMiddleware,register)
-companyRoutes.get("/display",displayCompanies)
+companyRoutes.get("/display",authMiddleware,displayCompanies)
 companyRoutes.get("/display/:id",authMiddleware,displayCompanyByid)
 companyRoutes.put("/update/:id",authMiddleware,UpdateCompany)
 companyRoutes.delete("/delete/:id",authMiddleware,deleteCompany)
