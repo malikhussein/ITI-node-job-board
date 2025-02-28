@@ -26,6 +26,11 @@ const jobSchema = new Schema(
       type: String,
       required: [true, "Location is required"],
     },
+    job_status: {
+      type: String,
+      enum: ["open", "closed"],
+      default: "open"
+    }
     // Company Rel
   },
   { timestamps: true }
