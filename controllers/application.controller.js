@@ -6,8 +6,7 @@ import userModel from '../models/user.model.js';
 export default class Application {
   static async applyJob(req, res) {
     try {
-      // TODO: replace userId with req.userId
-      const userId = '67be425b4ec595444e702a2b';
+      const userId = req.user.id;
 
       // * Check if the job exists
       const { jobId } = req.params;
@@ -22,14 +21,14 @@ export default class Application {
         return res.status(401).json({ message: 'token is invalid' });
       }
 
-      // * Check if the user posting the app exists and is a job-seeker
+      // * Check if the user applying for the job exists and is a job-seeker
       const user = await userModel.findById(userId);
 
       if (!user) {
         return res.status(404).json({ message: 'user does not exist' });
       }
 
-      if (user.role !== 'job-seeker') {
+      if (req.user.role !== 'job_seeker') {
         return res.status(403).json({ message: 'user is not a job-seeker' });
       }
 
@@ -43,8 +42,8 @@ export default class Application {
         return res.status(403).json({ message: 'application already exists' });
       }
 
-      // ? Check if the user has a resume
-      const resume = await resumeModel.findOne({ user: userId });
+      // * Check if the user has a resume
+      const resume = await resumeModel.findOne({ userId });
       if (!resume) {
         return res
           .status(404)
@@ -52,9 +51,9 @@ export default class Application {
       }
 
       // * Check if the job is open to apply
-      if (job.status === 'closed') {
-        return res.status(403).json({ message: 'job is not open' });
-      }
+      // if (job.status === 'closed') {
+      //   return res.status(403).json({ message: 'job is not open' });
+      // }
 
       const newApplication = await applicationModel.create({
         job: jobId,
@@ -73,8 +72,7 @@ export default class Application {
 
   static async getUserApplications(req, res) {
     try {
-      // TODO: replace userId with req.userId
-      const userId = '67be425b4ec595444e702a2b';
+      const userId = req.user.id;
 
       // * Check if the token is valid
       if (!userId) {
@@ -88,7 +86,7 @@ export default class Application {
         return res.status(404).json({ message: 'user does not exist' });
       }
 
-      if (user.role !== 'job-seeker') {
+      if (req.user.role !== 'job_seeker') {
         return res.status(403).json({ message: 'user is not a job-seeker' });
       }
 
@@ -111,8 +109,7 @@ export default class Application {
 
   static async getJobApplications(req, res) {
     try {
-      // TODO: replace userId with req.userId
-      const userId = '67be42794ec595444e702a2c';
+      const userId = req.user.id;
 
       // * Check if the job exists
       const { jobId } = req.params;
@@ -134,11 +131,12 @@ export default class Application {
         return res.status(404).json({ message: 'user does not exist' });
       }
 
-      // * Check if the user is a employer who posted the job or an admin
       // TODO check by whatever in the job model
+
+      // * Check if the user is a employer who posted the job or an admin
       const isEmployer =
         user.role === 'employer' && user.email === job.posted_by;
-      const isAdmin = user.role === 'admin';
+      const isAdmin = req.user.role === 'Admin';
 
       if (!isEmployer && !isAdmin) {
         return res.status(403).json({ message: 'user does not have access' });
@@ -157,8 +155,7 @@ export default class Application {
   // TODO: Test all errors
   static async updateStatus(req, res) {
     try {
-      // TODO: replace userId with req.userId
-      const userId = '67be42794ec595444e702a2c';
+      const userId = req.user.id;
 
       // * Get the values from the body
       const { status } = req.body;
@@ -188,7 +185,7 @@ export default class Application {
 
       const isEmployer =
         user.role === 'employer' && user.email === job.posted_by;
-      const isAdmin = user.role === 'admin';
+      const isAdmin = user.role === 'Admin';
 
       if (!isEmployer && !isAdmin) {
         return res.status(403).json({ message: 'user does not have access' });
@@ -224,8 +221,7 @@ export default class Application {
 
   static async deleteApplication(req, res) {
     try {
-      // TODO: replace userId with req.userId
-      const userId = '67be425b4ec595444e702a2b';
+      const userId = user.req.id;
 
       // * Check if the application exists
       const { id } = req.params;
@@ -248,7 +244,7 @@ export default class Application {
       }
 
       // * Check if the user is a job-seeker
-      if (user.role !== 'job-seeker') {
+      if (user.role !== 'job_seeker') {
         return res.status(403).json({ message: 'user is not a job-seeker' });
       }
 
