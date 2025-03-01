@@ -7,14 +7,15 @@ import {
   deleteJob,
   deleteAllJobs,
 } from "../controllers/job.controller.js";
+import authMiddleware from "../middleware/auth.middleware.js";
 
 const jobRouter = Router();
 
-jobRouter.post("/create", createJob);
-jobRouter.get("/", getAllJobs);
-jobRouter.get("/:id", getJobById);
-jobRouter.put("/update/:id", updateJob);
-jobRouter.delete("/delete/all", deleteAllJobs);
-jobRouter.delete("/delete/:id", deleteJob);
+jobRouter.post("/create", authMiddleware, createJob);
+jobRouter.get("/", authMiddleware, getAllJobs);
+jobRouter.get("/:id", authMiddleware, getJobById);
+jobRouter.put("/update/:id", authMiddleware, updateJob);
+jobRouter.delete("/delete/all", authMiddleware, deleteAllJobs);
+jobRouter.delete("/delete/:id", authMiddleware, deleteJob);
 
 export default jobRouter;
