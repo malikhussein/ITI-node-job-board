@@ -1,9 +1,18 @@
-import Job from '../models/job.model.js';
+import jobModel from '../models/job.model.js';
+import companyModel from '../models/company.model.js';
 
 // Create a new job
 export const createJob = async (req, res) => {
   try {
-    const { title, description, salary_range, location } = req.body;
+    const { title, description, salary_range, location, company } = req.body;
+
+    const companyExists = await companyModel.findById(company);
+    if (!companyExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Company not found",
+      })
+    };
 
     // Check for required fields
     if (!title || !description || !salary_range || !location) {
@@ -35,11 +44,12 @@ export const createJob = async (req, res) => {
       return res.status(400).json({ message: 'Minimum salary must be less than maximum salary' });
     }
 
-    const newJob = new Job({
+    const newJob = new jobModel({ 
       title,
       description,
       salary_range,
       location,
+      company
       // employer middleware
     });
 
@@ -53,7 +63,7 @@ export const createJob = async (req, res) => {
 // Get all jobs
 export const getAllJobs = async (req, res) => {
   try {
-    const jobs = await Job.find();
+    const jobs = await jobModel.find();
     res.status(200).json(jobs);
   } catch (error) {
     res.status(500).json({ message: 'There are no Jobs at this time', error: error.message });
@@ -63,7 +73,7 @@ export const getAllJobs = async (req, res) => {
 // Get job by ID
 export const getJobById = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const job = await jobModel.findById(req.params.id);
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
@@ -76,7 +86,7 @@ export const getJobById = async (req, res) => {
 // Update job
 export const updateJob = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const job = await jobModel.findById(req.params.id);
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
@@ -119,7 +129,7 @@ export const updateJob = async (req, res) => {
       updatedData.salary_range = salary_range;
     }
 
-    const updatedJob = await Job.findByIdAndUpdate(req.params.id, updatedData, {
+    const updatedJob = await jobModel.findByIdAndUpdate(req.params.id, updatedData, {
       new: true,
       runValidators: true,
     });
@@ -133,12 +143,12 @@ export const updateJob = async (req, res) => {
 // Delete job
 export const deleteJob = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
+    const job = await jobModel.findById(req.params.id);
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }
 
-    await Job.findByIdAndDelete(req.params.id);
+    await jobModel.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: 'Job deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Job does not exist!', error: error.message });
@@ -146,10 +156,9 @@ export const deleteJob = async (req, res) => {
 };
 
 //delete all jobs
-
 export const deleteAllJobs = async (req, res) => {
   try {
-    const result = await Job.deleteMany({});
+    const result = await jobModel.deleteMany({});
     res.status(200).json({ 
       message: 'All jobs deleted successfully', 
       deletedCount: result.deletedCount 
