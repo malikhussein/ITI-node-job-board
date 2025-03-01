@@ -2,7 +2,7 @@ import { model, Schema } from 'mongoose';
 const roleType = {
   job_seeker: 'job_seeker',
   employer: 'employer',
-  Admin: 'Admin',
+  admin: 'admin',
 };
 
 const userSchema = new Schema(
