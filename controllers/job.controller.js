@@ -72,7 +72,6 @@ export const createJob = async (req, res) => {
       salary_range,
       location,
       company: company._id,
-      // employer middleware
     });
 
     console.log(newJob);
@@ -259,7 +258,7 @@ export const deleteAllJobs = async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({
-      message: 'An error occurred while deleting all jobs',
+      message: 'error while deleting all jobs',
       error: error.message,
     });
   }
