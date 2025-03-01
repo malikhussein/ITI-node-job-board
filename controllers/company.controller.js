@@ -1,14 +1,14 @@
 import companyModel from "../models/company.model.js";
+import jobModel from "../models/job.model.js";
 import userModel from "../models/user.model.js";
 
 
-  // Todo chek the role is employer
 
 export const register = async (req, res) => {
 
   const {role,id:userId}= req.user
 
-  // Todo chek the user  is exist 
+  //  chek the user  is exist 
 
   const user = await userModel.findById(userId);
 
@@ -16,18 +16,26 @@ export const register = async (req, res) => {
     return res.status(404).json({ message: 'user does not exist' });
   }
 
+    //  chek the role is employer
+
   if (role!=="employer") {
 
     return res.status(403).json({message:"you are not allowed to create company"})
 
   }
 
+  const { name, industry, website } = req.body;
+
+  if (!name||!industry||!website) {
+    
+    return res.status(400).json({message:"please complete all fields"})
+  }
+
   try { 
     
 
-    const { name, industry, website } = req.body;
 
-    const company = await companyModel.create({ name, industry, website,id:userId });
+    const company = await companyModel.create({ name, industry, website,createdBy:userId });
 
     res.status(201).json({ message: "company is created", company });
 
@@ -56,14 +64,14 @@ export const displayCompanies = async (req, res) => {
 };
 
 
- //  chek any login-user  can display-- using middleware
+ //  check any login-user  can display-- using middleware
 
 export const displayCompanyByid = async (req, res) => {
 
     try {
         const{id:companyId} =req.params
 
-        const FoundedCompany =companyModel.findById({companyId})
+        const FoundedCompany =await companyModel.findById(companyId)
 
         if (!FoundedCompany) {
             
@@ -71,7 +79,7 @@ export const displayCompanyByid = async (req, res) => {
         }
         
         else{
-            res.status(200).json(FoundedCompany)
+            res.status(200).json({message:FoundedCompany})
         }
     
     } catch (error) {
@@ -84,13 +92,13 @@ export const displayCompanyByid = async (req, res) => {
 
 };
 
-  // Todo chek the role is employer
+  //  chek the role is employer
 
 export const UpdateCompany = async (req, res) => {
 
-  const userId = req.role.id 
+  const userId = req.user.id 
 
- owner= companyModel.findById(userId)
+ owner= companyModel.findOne({createdBy:userId})
 
  if (!owner) {
 
@@ -111,7 +119,7 @@ try {
   const{id:companyId} =req.params
 
 
- const updatedCompany= companyModel.findByIdAndUpdate(companyId,{name,industry,website },{new:true})
+ const updatedCompany=await companyModel.findByIdAndUpdate(companyId,{name,industry,website },{new:true})
 
 
 res.status(200).json({message:updatedCompany})
@@ -126,13 +134,13 @@ res.status(200).json({message:updatedCompany})
 
 export const deleteCompany = async (req, res) => {
 
- const userId = req.role.id 
+ const userId = req.user.id 
 
- owner= companyModel.findById(userId)
+ owner= await companyModel.findOne({createdBy:userId})
 
  if (!owner) {
 
-  return res.status(403).json({message:"you are not the owner to upadate"})
+  return res.status(403).json({message:"you are not the owner to delete"})
   
  }
 ``
@@ -148,7 +156,7 @@ try {
   const{id:companyId} =req.params
 
 
- const deletedCompany= companyModel.deleteOne({_id:companyId})
+ const deletedCompany=await companyModel.deleteOne({_id:companyId})
 
 
 res.status(200).json({message:deletedCompany})
@@ -159,14 +167,22 @@ res.status(200).json({message:deletedCompany})
 
 }
 
-  
-
 };
 
 export const getJobsByCompany = async (req, res) => {
 
-  const{id:companyId} =req.params
+  try {
+const{id:companyId} =req.params
 
+const Companyjobs= await jobModel.find({company:companyId})
+
+res.status(200).json({message:Companyjobs})
+    
+  } catch (error) {
+
+    res.status(500).json({ error: error.message });
+    
+  }
 
 
 };
