@@ -3,6 +3,13 @@ import companyModel from '../models/company.model.js';
 
 // Create a new job
 export const createJob = async (req, res) => {
+
+  const {role} = req.user
+
+  if (role !== "employer") {
+    return res.json({message: "You are not allowed to create Job"})
+  }
+
   try {
     const { title, description, salary_range, location, company } = req.body;
 
@@ -85,6 +92,13 @@ export const getJobById = async (req, res) => {
 
 // Update job
 export const updateJob = async (req, res) => {
+
+  const {role} = req.user
+
+  if (role !== "employer") {
+    return res.json({message: "You are not allowed to update Job"})
+  }
+
   try {
     const job = await jobModel.findById(req.params.id);
     if (!job) {
@@ -142,6 +156,13 @@ export const updateJob = async (req, res) => {
 
 // Delete job
 export const deleteJob = async (req, res) => {
+
+  const {role} = req.user
+
+  if (role !== "employer") {
+    return res.json({message: "You are not allowed to delete Job"})
+  }
+
   try {
     const job = await jobModel.findById(req.params.id);
     if (!job) {
@@ -157,12 +178,26 @@ export const deleteJob = async (req, res) => {
 
 //delete all jobs
 export const deleteAllJobs = async (req, res) => {
+
+  const {role} = req.user
+
+  if (role !== "admin") {
+    return res.json({message: "You are not allowed to delete Jobs"})
+  }
+
   try {
     const result = await jobModel.deleteMany({});
-    res.status(200).json({ 
-      message: 'All jobs deleted successfully', 
-      deletedCount: result.deletedCount 
-    });
+
+    if (result.deletedCount > 0) {
+      res.status(200).json({ 
+        message: 'All jobs deleted successfully', 
+        deletedCount: result.deletedCount 
+      });
+    }else {
+      res.status(404).json({
+        message: 'No jobs found in the database to delete'
+      })
+    }
   } catch (error) {
     res.status(500).json({ 
       message: 'An error occurred while deleting all jobs', 
