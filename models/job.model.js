@@ -26,6 +26,17 @@ const jobSchema = new Schema(
       type: String,
       required: [true, "Location is required"],
     },
+    job_status: {
+      type: String,
+      required: true,
+      enum: ["open", "closed"],
+      default: "open"
+    },
+    company: {
+      type: Schema.Types.ObjectId,
+      ref: "Company",
+      required: [true, "Company is required"],
+    }
     // Company Rel
   },
   { timestamps: true }
