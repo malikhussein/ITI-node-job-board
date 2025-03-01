@@ -1,22 +1,33 @@
 import companyModel from "../models/company.model.js";
+import userModel from "../models/user.model.js";
 
-export const register = async (req, res) => {
 
   // Todo chek the role is employer
 
-  const {role}= req.user
-  
+export const register = async (req, res) => {
+
+  const {role,id:userId}= req.user
+
+  // Todo chek the user  is exist 
+
+  const user = await userModel.findById(userId);
+
+  if (!user) {
+    return res.status(404).json({ message: 'user does not exist' });
+  }
+
   if (role!=="employer") {
 
-    return res.json({message:"you are not allowed to create company"})
+    return res.status(403).json({message:"you are not allowed to create company"})
 
   }
 
-  try {
+  try { 
+    
 
     const { name, industry, website } = req.body;
 
-    const company = await companyModel.create({ name, industry, website });
+    const company = await companyModel.create({ name, industry, website,id:userId });
 
     res.status(201).json({ message: "company is created", company });
 
@@ -45,7 +56,7 @@ export const displayCompanies = async (req, res) => {
 };
 
 
- //  chek user  can display using middleware
+ //  chek any login-user  can display-- using middleware
 
 export const displayCompanyByid = async (req, res) => {
 
@@ -73,12 +84,23 @@ export const displayCompanyByid = async (req, res) => {
 
 };
 
+  // Todo chek the role is employer
+
 export const UpdateCompany = async (req, res) => {
 
+  const userId = req.role.id 
+
+ owner= companyModel.findById(userId)
+
+ if (!owner) {
+
+  return res.status(403).json({message:"you are not the owner to upadate"})
+  
+ }
 
   if (req.user.role!=="employer") {
 
-    return res.json({message:"you are not allowed to upadate"})
+    return res.status(403).json({message:"you are not allowed to upadate"})
     
   }
 
@@ -104,17 +126,25 @@ res.status(200).json({message:updatedCompany})
 
 export const deleteCompany = async (req, res) => {
 
+ const userId = req.role.id 
 
+ owner= companyModel.findById(userId)
+
+ if (!owner) {
+
+  return res.status(403).json({message:"you are not the owner to upadate"})
+  
+ }
+``
   
   if (req.user.role!=="employer"|| req.user.role!=="admin") {
 
-    return res.json({message:"you are not allowed to delete"})
+    return res.status(403).json({message:"you are not allowed to delete"})
     
   }
 
 try {
   
-
   const{id:companyId} =req.params
 
 
@@ -133,4 +163,10 @@ res.status(200).json({message:deletedCompany})
 
 };
 
-export const getJobsByCompany = async (req, res) => {};
+export const getJobsByCompany = async (req, res) => {
+
+  const{id:companyId} =req.params
+
+
+
+};
