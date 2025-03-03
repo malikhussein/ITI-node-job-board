@@ -7,25 +7,31 @@ const rounds = parseInt(process.env.SALT_ROUND);
 
 const register = async (req, res) => {
   try {
-    
-    const { userName, email, password, confirmedPassword } = req.body;
+    const { userName, email, password, confirmedPassword, role } = req.body;
 
-    // check if password and confirmed password match
     if (password !== confirmedPassword) {
-      return res.status(400).send('Passwords do not match');
+      return res.status(400).json({ success: false, message: 'Passwords do not match' });
     }
+
     if (await userModel.findOne({ email })) {
-      return res.status(400).send('Email already exists');
+      return res.status(400).json({ success: false, message: 'Email already exists' });
     }
-    // hashing password
+
+    // Prevent users from registering as admin
+    if (role === 'admin') {
+      return res.status(403).json({ success: false, message: 'You cannot register as an admin.' });
+    }
+
     const hashPassword = bcrypt.hashSync(password, rounds);
+
+    // Create user (  default role : 'job_seeker')
     const user = await userModel.create({
       userName,
       email,
       password: hashPassword,
+      role, 
     });
 
-    //deleting password before sending the user document in the database
     const objectUser = user.toObject();
     delete objectUser.password;
 
@@ -35,14 +41,15 @@ const register = async (req, res) => {
     sendEmail(objectUser.email, url);
 
     res.status(200).json({
-      message: 'Register Routing work ,User registered successfully',
+      message: 'User registered successfully',
       objectUser,
     });
   } catch (error) {
-    res.status(500).send('Internal Server Error');
+    res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
     console.log(error);
   }
 };
+
 
 const login = async (req, res) => {
   try {

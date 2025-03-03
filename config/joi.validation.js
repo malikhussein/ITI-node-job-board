@@ -45,7 +45,9 @@ const signUpJoiSchema = joi.object({
       'any.required': 'Confirm Password is required',
       'any.only': 'Passwords do not match',
     }),
-
+  role: joi.string().valid('job_seeker', 'employer').optional().messages({
+    'any.only': 'Role must be either "job_seeker" or "employer".',
+  }),
 });
 
 // sign In validations schema
