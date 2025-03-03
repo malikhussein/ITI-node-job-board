@@ -36,7 +36,7 @@ const register = async (req, res) => {
     delete objectUser.password;
 
     const token = jwt.sign({ id: user._id }, process.env.CONFIRM_EMAIL_TOKEN);
-    const url = `${req.protocol}://${req.hostname}:${process.env.PORT}/auth/verify/${token}`;
+    const url = `${req.protocol}://${req.hostname}:${process.env.PORT}/api/auth/verify/${token}`;
     console.log(url);
     sendEmail(objectUser.email, url);
 
