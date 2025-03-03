@@ -9,7 +9,7 @@ dotenv.config();
 export const getAllUsers = async (req, res) => {
   try {
     //  only admin can see all users
-    if (req.user.role !== 'Admin') {
+    if (req.user.role !== 'admin') {
       return res
         .status(403)
         .json({
@@ -68,30 +68,51 @@ export const getUserById = async (req, res) => {
   }
 };
 /**
- * SEARCH FOR USERS BY EMAIL
- * GET /api/users/email/:email
+ * SEARCH FOR USERS BY Email and Name (case insensitive)
+ * GET /api/users/search/
  */
-export const searchByEmail = async (req, res) => {
+export const searchUser = async (req, res) => {
   try {
-    const { email } = req.params;
+    const { userName, email } = req.body; 
 
-    const user = await userModel.findOne({ email }, { password: 0 });
-
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'User not found' });
+    if (!userName && !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a user name or email to search',
+      });
     }
 
-    res.status(200).json({ success: true, user });
+    const query = {};
+
+    if (email) {
+      query.email = { $regex: email, $options: "i" }; // Case-insensitive and allows partial matches
+    }
+
+    if (userName) {
+      query.userName = { $regex: userName, $options: "i" }; 
+    }
+
+    const users = await userModel.find(query, { password: 0 }); 
+
+    if (!users.length) {
+      return res.status(404).json({
+        success: false,
+        message: 'No users found',
+      });
+    }
+
+    res.status(200).json({ success: true, users });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Error searching user by email',
+      message: 'Error searching users',
       error: err.message,
     });
   }
 };
+
+
+
 /**
  * UPDATE USER
  * PUT /api/users/:id
@@ -99,17 +120,17 @@ export const searchByEmail = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    // only the user or the Admin is allowed to change the data 
+    // only the user or the admin is allowed to change the data 
 
     // If not admin, must be the same user
-    if (req.user.role !== 'Admin' && req.user.id !== id) {
+    if (req.user.role !== 'admin' && req.user.id !== id) {
       return res
         .status(403)
         .json({ success: false, message: 'Not authorized' });
     }
 
     // If user is not admin, disallow changing the role
-    if (req.user.role !== 'Admin' && req.body.role) {
+    if (req.user.role !== 'admin' && req.body.role) {
       return res.status(403).json({
         success: false,
         message: 'You cannot change your role.',
@@ -146,11 +167,11 @@ export const updateUser = async (req, res) => {
 /**
  * DELETE ALL USERS
  * DELETE /api/users
- * Only Admin can perform this.
+ * Only admin can perform this.
  */
 export const deleteAllUsers = async (req, res) => {
   try {
-    if (req.user.role !== 'Admin') {
+    if (req.user.role !== 'admin') {
       return res
         .status(403)
         .json({
@@ -159,8 +180,8 @@ export const deleteAllUsers = async (req, res) => {
         });
     }
 
-    // This will remove all users whose role !== 'Admin '
-    const result = await userModel.deleteMany({ role: { $ne: 'Admin' } });
+    // This will remove all users whose role !== 'admin '
+    const result = await userModel.deleteMany({ role: { $ne: 'admin' } });
     return res.status(200).json({
       success: true,
       message: 'All non-admin users deleted successfully',
@@ -184,7 +205,7 @@ export const deleteUser = async (req, res) => {
     const { id } = req.params;
 
     // If not admin, must be the same user
-    if (req.user.role !== 'Admin' && req.user.id !== id) {
+    if (req.user.role !== 'admin' && req.user.id !== id) {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to delete this user',
