@@ -10,7 +10,7 @@ export const createJob = async (req, res) => {
   }
 
   try {
-    const { title, description, salary_range, location } = req.body;
+    const { title, description, salary_range, location,job_type } = req.body;
 
     const company = await companyModel.findOne({ createdBy: id });
     if (!company) {
@@ -71,6 +71,7 @@ export const createJob = async (req, res) => {
       description,
       salary_range,
       location,
+      job_type,
       company: company._id,
     });
 
@@ -135,7 +136,7 @@ export const updateJob = async (req, res) => {
       });
     }
 
-    const { title, description, salary_range, location } = req.body;
+    const { title, description, salary_range, location, job_type } = req.body;
 
     // Update fields
     const updatedData = {};
@@ -158,6 +159,12 @@ export const updateJob = async (req, res) => {
         return res.status(400).json({ message: 'Location must be a string' });
       }
       updatedData.location = location;
+    }
+    if (job_type) {
+      if (typeof job_type !== 'string') {
+        return res.status(400).json({ message: 'Job type must be a string' });
+      }
+      updatedData.job_type = job_type;
     }
     if (salary_range) {
       if (salary_range.min === undefined || salary_range.max === undefined) {

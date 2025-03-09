@@ -29,14 +29,12 @@ const jobSchema = new Schema(
     job_status: {
       type: String,
       required: true,
-      enum: ["open", "closed"],
-      default: "open",
+      enum: ["Open", "Closed"],
+      default: "Open",
     },
     job_type: {
       type: String,
       required: [true, "Job type is required"],
-      enum: ["Remote", "Freelance", "Part Time", "Full Time"],
-      default: "Full Time",
     },
     company: {
       type: Schema.Types.ObjectId,
