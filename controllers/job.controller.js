@@ -89,7 +89,7 @@ export const createJob = async (req, res) => {
 // Get all jobs
 export const getAllJobs = async (req, res) => {
   try {
-    const jobs = await jobModel.find();
+    const jobs = await jobModel.find().populate("company");
     res.status(200).json(jobs);
   } catch (error) {
     res.status(500).json({
@@ -102,7 +102,7 @@ export const getAllJobs = async (req, res) => {
 // Get job by ID
 export const getJobById = async (req, res) => {
   try {
-    const job = await jobModel.findById(req.params.id);
+    const job = await jobModel.findById(req.params.id).populate("company");
     if (!job) {
       return res.status(404).json({ message: 'Job not found' });
     }

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { model, Schema } from "mongoose";
 
 const jobSchema = new Schema(
@@ -37,7 +38,7 @@ const jobSchema = new Schema(
       required: [true, "Job type is required"],
     },
     company: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Company",
       required: [true, "Company is required"],
     },
