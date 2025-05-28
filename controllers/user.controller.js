@@ -1,5 +1,5 @@
-import userModel from '../models/user.model.js';
-import dotenv from 'dotenv';
+import userModel from "../models/user.model.js";
+import dotenv from "dotenv";
 dotenv.config();
 
 /**
@@ -9,13 +9,11 @@ dotenv.config();
 export const getAllUsers = async (req, res) => {
   try {
     //  only admin can see all users
-    if (req.user.role !== 'admin') {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: 'Not authorized to see all users',
-        });
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to see all users",
+      });
     }
 
     // Exclude password returned docs { password: 0 }
@@ -24,7 +22,7 @@ export const getAllUsers = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Error fetching users',
+      message: "Error fetching users",
       error: err.message,
     });
   }
@@ -43,26 +41,24 @@ export const getUserById = async (req, res) => {
     //     .status(403)
     //     .json({ success: false, message: 'Not authorized' });
     // }
-    
+
     // ==>
     // edited to any one can veiw data
     // req.user ==> from the authMiddleware
-    if (req.user.id)
-    {
+    if (req.user.id) {
       const user = await userModel.findById(id, { password: 0 });
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'User not found' });
-    }
+      if (!user) {
+        return res
+          .status(404)
+          .json({ success: false, message: "User not found" });
+      }
 
-    res.status(200).json({ success: true, user });
+      res.status(200).json({ success: true, user });
     }
-    
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Error fetching user by ID',
+      message: "Error fetching user by ID",
       error: err.message,
     });
   }
@@ -73,12 +69,12 @@ export const getUserById = async (req, res) => {
  */
 export const searchUser = async (req, res) => {
   try {
-    const { userName, email } = req.body; 
+    const { userName, email } = req.body;
 
     if (!userName && !email) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide a user name or email to search',
+        message: "Please provide a user name or email to search",
       });
     }
 
@@ -89,15 +85,15 @@ export const searchUser = async (req, res) => {
     }
 
     if (userName) {
-      query.userName = { $regex: userName, $options: "i" }; 
+      query.userName = { $regex: userName, $options: "i" };
     }
 
-    const users = await userModel.find(query, { password: 0 }); 
+    const users = await userModel.find(query, { password: 0 });
 
     if (!users.length) {
       return res.status(404).json({
         success: false,
-        message: 'No users found',
+        message: "No users found",
       });
     }
 
@@ -105,61 +101,119 @@ export const searchUser = async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Error searching users',
+      message: "Error searching users",
       error: err.message,
     });
   }
 };
 
-
-
 /**
  * UPDATE USER
  * PUT /api/users/:id
  */
+const rounds = 10;
+
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    // only the user or the admin is allowed to change the data 
 
-    // If not admin, must be the same user
-    if (req.user.role !== 'admin' && req.user.id !== id) {
-      return res
-        .status(403)
-        .json({ success: false, message: 'Not authorized' });
-    }
-
-    // If user is not admin, disallow changing the role
-    if (req.user.role !== 'admin' && req.body.role) {
+    if (req.user.role !== "admin" && req.user.id !== id) {
       return res.status(403).json({
         success: false,
-        message: 'You cannot change your role.',
+        message: "Not authorized to update this user",
       });
     }
 
-    // Perform the update
-    const updatedUser = await userModel.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
-    if (!updatedUser) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'User not found' });
+    if (req.user.role !== "admin" && req.body.role) {
+      return res.status(403).json({
+        success: false,
+        message: "You cannot change your role",
+      });
     }
 
-    // Hide password (different method)
-    const { password, ...rest } = updatedUser.toObject();
+    const updateData = {};
+
+    [
+      "userName",
+      "password",
+      "dob",
+      "gender",
+      "profilePicture",
+      "summary",
+      "objective",
+      "cv",
+      "title",
+    ].forEach((field) => {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    });
+
+    if (req.body.aboutMe) {
+      updateData.aboutMe = {};
+      if (req.body.aboutMe.primaryIndustry !== undefined)
+        updateData.aboutMe.primaryIndustry = req.body.aboutMe.primaryIndustry;
+      if (req.body.aboutMe.expectedSalary !== undefined)
+        updateData.aboutMe.expectedSalary = req.body.aboutMe.expectedSalary;
+      if (req.body.aboutMe.experience !== undefined)
+        updateData.aboutMe.experience = req.body.aboutMe.experience;
+    }
+
+    if (req.body.contacts) {
+      updateData.contacts = { ...req.body.contacts };
+    }
+
+    if (req.body.skills !== undefined) {
+      if (typeof req.body.skills === "string") {
+        updateData.skills = req.body.skills.split(",").map((s) => s.trim());
+      } else if (Array.isArray(req.body.skills)) {
+        updateData.skills = req.body.skills.map((s) => String(s).trim());
+      }
+    }
+
+    if (req.body.education !== undefined && Array.isArray(req.body.education)) {
+      updateData.education = req.body.education;
+    }
+
+    if (
+      req.body.workExperience !== undefined &&
+      Array.isArray(req.body.workExperience)
+    ) {
+      updateData.workExperience = req.body.workExperience;
+    }
+
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(
+        updateData.password,
+        HASH_SALT_ROUNDS
+      );
+    }
+
+    const updatedUser = await userModel.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const { password, ...userWithoutPassword } = updatedUser.toObject();
 
     return res.status(200).json({
       success: true,
-      message: 'User updated successfully',
-      user: rest,
+      message: "User updated successfully",
+      user: userWithoutPassword,
     });
   } catch (err) {
-    console.error(err);
+    console.error("🔥 Error in updateUser (Backend Catch):", err.message);
+    console.error("🔥 Full error object:", err);
     return res.status(500).json({
       success: false,
-      message: 'Error updating user',
+      message: "Error updating user",
       error: err.message,
     });
   }
@@ -171,27 +225,24 @@ export const updateUser = async (req, res) => {
  */
 export const deleteAllUsers = async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: 'Not authorized to delete all users',
-        });
+    if (req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to delete all users",
+      });
     }
 
-    // This will remove all users whose role !== 'admin '
-    const result = await userModel.deleteMany({ role: { $ne: 'admin' } });
+    const result = await userModel.deleteMany({ role: { $ne: "admin" } });
     return res.status(200).json({
       success: true,
-      message: 'All non-admin users deleted successfully',
+      message: "All non-admin users deleted successfully",
       deletedCount: result.deletedCount, // optional info
     });
   } catch (err) {
     console.error(err);
     return res.status(500).json({
       success: false,
-      message: 'Error deleting all users',
+      message: "Error deleting all users",
       error: err.message,
     });
   }
@@ -204,11 +255,10 @@ export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // If not admin, must be the same user
-    if (req.user.role !== 'admin' && req.user.id !== id) {
+    if (req.user.role !== "admin" && req.user.id !== id) {
       return res.status(403).json({
         success: false,
-        message: 'Not authorized to delete this user',
+        message: "Not authorized to delete this user",
       });
     }
 
@@ -216,20 +266,20 @@ export const deleteUser = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: "User not found",
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: 'User deleted successfully',
+      message: "User deleted successfully",
       user,
     });
   } catch (err) {
     console.error(err);
     return res.status(500).json({
       success: false,
-      message: 'Error deleting user',
+      message: "Error deleting user",
       error: err.message,
     });
   }
